@@ -1,0 +1,11 @@
+api:
+  addr: ":8080"
+keydb:
+  addr: "keydb:6379"
+  username: ""
+  password: ""
+  database: 0
+retention:
+  archive_path: "data/archive.db"
+  hot_commit_limit: 0
+  hot_duration: ""

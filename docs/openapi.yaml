@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title: kv-vs API
+  version: 1.0.0
+servers:
+  - url: /
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+  /api/v1/blob/repo/{repo}:
+    put:
+      summary: Upload raw text blob and create a commit
+      parameters:
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branch
+          in: query
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Commit created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commit:
+                    type: string
+                  branch:
+                    type: string
+                  created_at:
+                    type: string
+                  diff:
+                    type: string
+                required: [commit, branch]
+      security:
+        - AuthorHeaders: []
+    get:
+      summary: Fetch latest or specific commit content for a repository
+      parameters:
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branch
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: commit
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Commit found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commit:
+                    $ref: '#/components/schemas/Commit'
+                  content:
+                    type: string
+      security:
+        - AuthorHeaders: []
+  /api/v1/commits:
+    get:
+      summary: List commits for a repository
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+        - name: order
+          in: query
+          schema: { type: string, enum: [asc, desc] }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: Commit list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+      security:
+        - AuthorHeaders: []
+  /api/v1/commits/{hash}:
+    get:
+      summary: Fetch commit metadata and content
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema: { type: string }
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Commit detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commit:
+                    $ref: '#/components/schemas/Commit'
+                  content:
+                    type: string
+      security:
+        - AuthorHeaders: []
+  /api/v1/branches:
+    get:
+      summary: List branches
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Branch list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Branch'
+      security:
+        - AuthorHeaders: []
+    post:
+      summary: Create or update branch pointer
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchRequest'
+      responses:
+        '201':
+          description: Branch created or updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+      security:
+        - AuthorHeaders: []
+  /api/v1/branches/{branch}:
+    get:
+      summary: Fetch branch metadata
+      parameters:
+        - name: branch
+          in: path
+          required: true
+          schema: { type: string }
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Branch metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+      security:
+        - AuthorHeaders: []
+  /api/v1/tags:
+    get:
+      summary: List tags
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Tag list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+      security:
+        - AuthorHeaders: []
+    post:
+      summary: Create tag
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+      responses:
+        '201':
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+      security:
+        - AuthorHeaders: []
+  /api/v1/tags/{tag}:
+    get:
+      summary: Fetch tag metadata
+      parameters:
+        - name: tag
+          in: path
+          required: true
+          schema: { type: string }
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Tag metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+      security:
+        - AuthorHeaders: []
+  /api/v1/policies:
+    get:
+      summary: Fetch repository retention policy
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+      security:
+        - AuthorHeaders: []
+    post:
+      summary: Set repository retention policy (immutable)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRequest'
+      responses:
+        '201':
+          description: Policy stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+      security:
+        - AuthorHeaders: []
+components:
+  securitySchemes:
+    AuthorHeaders:
+      type: apiKey
+      in: header
+      name: X-Author-Name
+  schemas:
+    Commit:
+      type: object
+      properties:
+        repo: { type: string }
+        branch: { type: string }
+        hash: { type: string }
+        parent: { type: string, nullable: true }
+        author: { type: string }
+        authorId: { type: string }
+        message: { type: string }
+        contentHash: { type: string }
+        timestamp: { type: string, format: date-time }
+        archived: { type: boolean }
+    Branch:
+      type: object
+      properties:
+        repo: { type: string }
+        name: { type: string }
+        commit: { type: string }
+        updatedAt: { type: string, format: date-time }
+    BranchRequest:
+      type: object
+      required: [name, commit]
+      properties:
+        name: { type: string }
+        commit: { type: string }
+    Tag:
+      type: object
+      properties:
+        repo: { type: string }
+        name: { type: string }
+        commit: { type: string }
+        note: { type: string }
+        createdAt: { type: string, format: date-time }
+    TagRequest:
+      type: object
+      required: [name, commit]
+      properties:
+        name: { type: string }
+        commit: { type: string }
+        note: { type: string }
+    Policy:
+      type: object
+      properties:
+        name: { type: string }
+        hotCommitLimit: { type: integer }
+        hotDuration: { type: string }
+        locked: { type: boolean }
+    PolicyRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        hotCommitLimit: { type: integer }
+        hotDuration: { type: string }

@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    environment:
+      - API_ADDR=:8080
+      - KEYDB_ADDR=keydb:16379
+    depends_on:
+      - keydb
+    ports:
+      - "28080:8080"
+  keydb:
+    image: eqalpha/keydb:latest
+    command: >-
+      --appendonly yes
+      --save 300 10
+    volumes:
+      - keydb-data:/data
+    ports:
+      - "16379:6379"
+volumes:
+  keydb-data:
+    driver: local
