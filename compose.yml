@@ -3,7 +3,7 @@ services:
     build: .
     environment:
       - API_ADDR=:8080
-      - KEYDB_ADDR=keydb:16379
+      - KEYDB_ADDR=keydb:6379
     depends_on:
       - keydb
     ports:
@@ -15,8 +15,14 @@ services:
       --save 300 10
     volumes:
       - keydb-data:/data
-    ports:
-      - "16379:6379"
+
 volumes:
   keydb-data:
     driver: local
+
+networks:
+  public:
+    enable_ipv6: false
+  private:
+    enable_ipv6: false
+    internal: true

@@ -42,3 +42,10 @@ func (s *Service) handleSwagger(w http.ResponseWriter, r *http.Request, tail str
 		http.NotFound(w, r)
 	}
 }
+
+// SwaggerHandler returns an http.Handler serving the embedded Swagger UI and spec.
+func SwaggerHandler(svc *Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		svc.handleSwagger(w, r, strings.TrimPrefix(r.URL.Path, "/swagger"))
+	})
+}

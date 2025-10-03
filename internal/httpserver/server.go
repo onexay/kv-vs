@@ -28,6 +28,8 @@ func NewServer(ctx context.Context) (*Server, error) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+	mux.Handle("/swagger", service.SwaggerHandler(svc))
+	mux.Handle("/swagger/", service.SwaggerHandler(svc))
 	mux.Handle("/api/v1/", service.Handler(svc))
 
 	return &Server{addr: cfg.APIAddr, handler: mux}, nil
