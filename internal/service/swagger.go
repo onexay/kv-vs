@@ -19,8 +19,10 @@ const swaggerHTML = `<!DOCTYPE html>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
     window.onload = function() {
+      const base = window.location.pathname.replace(/[^/]*$/, '');
+      const specUrl = base + 'openapi.yaml';
       SwaggerUIBundle({
-        url: 'openapi.yaml',
+        url: specUrl,
         dom_id: '#swagger-ui',
         deepLinking: true,
       });
